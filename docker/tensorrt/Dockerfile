@@ -38,6 +38,7 @@ RUN git clone https://gitlab.com/jweil/PommerLearn.git && \
 
 # build the binary
 WORKDIR /PommerLearn/build
+
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DUSE_TENSORRT8=ON -DCMAKE_CXX_COMPILER="$(which g++)" .. && \
     make VERBOSE=1 all -j$(nproc) && \
     # clear the cache

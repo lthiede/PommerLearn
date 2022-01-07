@@ -27,7 +27,7 @@ stop_rl_lock = threading.Lock()
 def rename_datasets_id(dir: Path, id: str):
     """
     Rename all the datasets inside a directory according to the given id.
-    
+
     :param dir: A directory which might contain some datatsets
     :param id: An identifier for these datasets
     """
@@ -405,7 +405,7 @@ def main():
     # model_subdir = "torch_cpu"
     # model_subdir = "torch_cuda"
     dataset_args = [
-        "--mode=ffa_mcts",
+        "--mode=team_radio_mcts",
         "--env_gen_seed_eps=2",
         "--max_games=-1",
         "--targeted_samples=50000",
