@@ -441,4 +441,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("TESTING A2C")
     main()

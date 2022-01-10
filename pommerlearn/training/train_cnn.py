@@ -15,6 +15,7 @@ from data_augmentation import *
 from nn import PommerModel
 from nn.a0_resnet import AlphaZeroResnet, init_weights
 from nn.rise_mobile_v3 import RiseV3
+from nn.a2c import A2CNet
 import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -34,7 +35,7 @@ from training.train_util import rm_dir
 
 def create_model(train_config):
     input_shape = (18, 11, 11)
-    valid_models = ["a0", "risev3"]
+    valid_models = ["a0", "risev3", "a2c"]
     if train_config["model"] == "a0":
         model = AlphaZeroResnet(num_res_blocks=train_config["num_res_blocks"], nb_input_channels=input_shape[0], board_width=input_shape[2],
                                 board_height=input_shape[1], act_type=train_config["act_type"],
@@ -53,6 +54,8 @@ def create_model(train_config):
                        # .. with lstm
                        use_lstm=train_config["use_lstm"], lstm_layers=1
         )
+    elif train_config["model"] == "a2c":
+        model = A2CNet()
     else:
         raise Exception(f'Invalid model "{train_config["model"]}" given. Valid models are "{valid_models}".')
     init_weights(model)
@@ -578,7 +581,7 @@ def fill_default_config(train_config):
         "batch_size_test": 1024,
         "random_state":  42,
         "nb_epochs":  20,
-        "model": "risev3",  # "a0", "risev3", "lstm"
+        "model": "a2c",  # "a0", "risev3", "lstm" #TODO
         "sequence_length": 8,  # only used when model is stateful
         "use_downsampling": True,
         "se_type": None,  # None, "se", "cbam", "eca_se", "ca_se", "cm_se", "sa_se", "sm_se"
