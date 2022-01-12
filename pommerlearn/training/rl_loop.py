@@ -384,7 +384,7 @@ def main():
 
     # Info: All path-related arguments should be set inside the rl loop
 
-    value_version = 1
+    value_version = 1 #TODO
     train_config = {
         "nb_epochs": 2,
         "only_test_last": True,
@@ -405,7 +405,7 @@ def main():
     # model_subdir = "torch_cpu"
     # model_subdir = "torch_cuda"
     dataset_args = [
-        "--mode=team_radio_mcts",
+        "--mode=team_radio_mcts", #TODO
         "--env_gen_seed_eps=2",
         "--max_games=-1",
         "--targeted_samples=50000",
@@ -441,5 +441,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print("TESTING A2C")
     main()

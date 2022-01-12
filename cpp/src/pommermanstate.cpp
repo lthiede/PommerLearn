@@ -70,7 +70,8 @@ void PommermanState::set_observation(const bboard::Observation* obs)
 bool _supportedPlanningAgents(PommermanState* state)
 {
     // supported: full observability of the board and all agent information is known
-    return !state->usePartialObservability || (state->params.agentInfoVisibility == bboard::AgentInfoVisibility::All && !state->params.agentPartialMapView);
+    // return !state->usePartialObservability || (state->params.agentInfoVisibility == bboard::AgentInfoVisibility::All && !state->params.agentPartialMapView);
+    return true;
 }
 
 void PommermanState::set_partial_observability(const bboard::ObservationParameters params)

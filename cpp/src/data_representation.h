@@ -33,32 +33,32 @@ Observation Space
 Planes
 
 Obstacles
-* Non-Destructible
-* Destructible
+* 0 Non-Destructible
+* 1 Destructible
 
 Items
-* Increase Bomb Count
-* Increase Bomb Strength (Range)
-* Kick
+* 2 Increase Bomb Count
+* 3 Increase Bomb Strength (Range)
+* 4 Kick
 
 Bomb:
-* Bomb Position & Life 0 -> 1
-* Bomb Blast Strength
+* 5 Bomb Position & Life 0 -> 1
+* 6 Bomb Blast Strength
 
 Flames:
-* Bomb Flame Position & Life 1 -> 0
+* 9 Bomb Flame Position & Life 1 -> 0
 
 Player
-* Position Self
-* Position Enemy 1
-* Position Enemy 2
-* Position Enemy 3
+* 10 Position Self
+* 11 Position Enemy 1
+* 12 Position Enemy 2
+* 13 Position Enemy 3
 
 Scalar Feature Planes:
-* Self: Player Bomb Strength
-* Self: Bomb Count (Ammo)
-* Self: Max Momb Count
-* Self: Can Kick
+* 14 Self: Player Bomb Strength
+* 15 Self: Bomb Count (Ammo)
+* 16 Self: Max Momb Count
+* 17 Self: Can Kick
 
 */
 

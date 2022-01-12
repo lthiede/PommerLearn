@@ -9,6 +9,8 @@ import zarr
 from torch.utils.data import DataLoader, TensorDataset, Dataset, WeightedRandomSampler
 from torch.utils.tensorboard import SummaryWriter
 
+import reward_shaping
+
 
 class PommerSample(NamedTuple):
     """
@@ -460,6 +462,27 @@ def get_value_target(z, value_version: int, discount_factor: float, mcts_val_wei
 
             episode_value = -1 + 4.0 / 7 * num_dead_opponents + (0 if dead else 2.0 / 7)
             episode_target = get_combined_target(episode_mcts_val, episode_value, episode_discounting)
+
+        # OUR _NEW_ VERSION OF THE REWARD SHAPING
+        elif value_version == 5:
+
+            obs = z['obs'][agent_ep_idx]
+            act = z['act'][agent_ep_idx] # TODO SIND DIE ACTIONS SCHON NUMERISCH CODIERT?
+
+            print("Action: " + str(act))
+
+            if agent_ep_idx == 0:
+                old_obs = obs
+                old_act = 0
+            else:
+                old_obs = z['obs'][agent_ep_idx - 1]
+                old_act = z['act'][agent_ep_idx - 1]
+
+            episode_target = reward_shaping.get_reward(obs, old_obs, act, old_act)  # TODO
+
+            import sys
+            sys.exit()
+
         else:
             raise ValueError(f"Unknown value version {value_version}")
 
