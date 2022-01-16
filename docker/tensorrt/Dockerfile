@@ -30,11 +30,11 @@ ENV CUDA_PATH="/usr/local/cuda"
 
 # clone repository
 WORKDIR /
-RUN git clone https://gitlab.com/jweil/PommerLearn.git && \
-    cd PommerLearn && \
-    git submodule update --init deps/playground && \
-    git submodule update --init deps/pomcpp && \
-    git submodule update --init deps/CrazyAra
+ADD . PommerLearn
+#RUN cd PommerLearn && \
+#    git submodule update --init deps/playground && \
+#    git submodule update --init deps/pomcpp && \
+#    git submodule update --init deps/CrazyAra
 
 # build the binary
 WORKDIR /PommerLearn/build

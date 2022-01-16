@@ -76,15 +76,18 @@ void team_radio_tourney(std::string modelDir, RunnerConfig config, bool useRawNe
     bboard::GameMode gameMode = bboard::GameMode::TeamRadio;
 
     std::cout << "Loading agents.." << std::endl;
-    std::unique_ptr<CrazyAraAgent> crazyAraAgent;
+    std::unique_ptr<CrazyAraAgent> crazyAraAgent1;
+    std::unique_ptr<CrazyAraAgent> crazyAraAgent2;
     if (useRawNet)
     {
-        crazyAraAgent = std::make_unique<CrazyAraAgent>(modelDir);
+        crazyAraAgent1 = std::make_unique<CrazyAraAgent>(modelDir);
+        crazyAraAgent2 = std::make_unique<CrazyAraAgent>(modelDir);
     }
     else {
         SearchSettings searchSettings = CrazyAraAgent::get_default_search_settings(true);
         PlaySettings playSettings;
-        crazyAraAgent = std::make_unique<CrazyAraAgent>(modelDir, playSettings, searchSettings, searchLimits);
+        crazyAraAgent1 = std::make_unique<CrazyAraAgent>(modelDir, playSettings, searchSettings, searchLimits);
+        crazyAraAgent2 = std::make_unique<CrazyAraAgent>(modelDir, playSettings, searchSettings, searchLimits);
     }
 
     // partial observability
@@ -95,13 +98,14 @@ void team_radio_tourney(std::string modelDir, RunnerConfig config, bool useRawNe
     obsParams.exposePowerUps = false;
     obsParams.agentViewSize = 4;
 
-    crazyAraAgent->init_state(gameMode, obsParams, valueVersion, planningAgentType);
+    crazyAraAgent1->init_state(gameMode, obsParams, valueVersion, planningAgentType);
+    crazyAraAgent2->init_state(gameMode, obsParams, valueVersion, planningAgentType);
 
     srand(config.seed);
     std::array<bboard::Agent*, bboard::AGENT_COUNT> agents = {
-        crazyAraAgent.get(),
+        crazyAraAgent1.get(),
         new agents::SimpleUnbiasedAgent(rand()),
-        new agents::SimpleUnbiasedAgent(rand()),
+        crazyAraAgent2.get(),
         new agents::SimpleUnbiasedAgent(rand()),
     };
 
