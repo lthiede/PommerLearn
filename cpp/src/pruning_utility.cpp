@@ -7,6 +7,17 @@
 namespace action_pruning
 {
 
+std::vector<std::vector<int>> get_bomb_blast_st(bboard::FixedQueue<bboard::Bomb,
+  bboard::MAX_BOMBS> bombs) {
+    std::vector<std::vector<int>> bomb_blast_st(bboard::BOARD_SIZE,
+      std::vector<int>(bboard::BOARD_SIZE));
+    while (bombs.count > 0) {
+        bboard::Bomb bomb = bombs.PopElem();
+        bomb_blast_st[bboard::BMB_POS_X(bomb)][bboard::BMB_POS_Y(bomb)] = bboard::BMB_STRENGTH(bomb);
+    }
+    return bomb_blast_st;
+}
+
 float manhattan_distance(bboard::Position pos1, bboard::Position pos2) {
     return std::abs(pos1.x - pos2.x) + std::abs(pos1.y - pos2.y);
 }
@@ -161,5 +172,109 @@ std::tuple<bool, int, int> position_covered_by_bomb(bboard::Observation obs,
     }
     return std::make_tuple(false, INT_MAX, -INT_MAX);
 }
+
+bool check_if_flame_will_be_gone(bboard::Observation obs,
+  std::vector<bboard::Observation> prev_two_obs, bboard::Position flame_pos) {
+    /*
+    assert(prev_two_obs[0] is not None)
+    assert(prev_two_obs[1] is not None)
+    if the elements don't exist an error will be thrown
+    #check the flame group in current obs, see if
+    #the whole group was there prev two obs
+    #otherwise, although this flame appears in prev two obs,
+    #it could be a old overlap new, thus will not gone next step
+    */
+    if (!(bboard::IS_FLAME(prev_two_obs.at(0).GetItem(flame_pos.x, flame_pos.y)) &&
+      bboard::IS_FLAME(prev_two_obs.at(1).GetItem(flame_pos.x, flame_pos.y)))) {
+        return false;
+    }
+    // board = obs['board'] weggelassen, da mit cpp obs von board erbt
+    std::vector<bboard::Position> q;
+    // at to the front and remove in the back
+    q.insert(q.begin(), flame_pos);
+    std::unordered_set<bboard::Position> visited = {flame_pos};
+    std::vector<bboard::Move> dirs = all_directions();
+    while (q.size() > 0) {
+        // remove in the back and at to the front
+        bboard::Position pos = q.back();
+        q.pop_back();
+        if (!(bboard::IS_FLAME(prev_two_obs.at(0).GetItem(pos.x, pos.y)) &&
+          bboard::IS_FLAME(prev_two_obs.at(1).GetItem(pos.x, pos.y)))) {
+            return false;
+        }
+        for (bboard::Move d : dirs) {
+            bboard::Position next_pos = bboard::util::DesiredPosition(pos.x, pos.y, d);
+            if (!bboard::IsOutOfBounds(next_pos.x, next_pos.y) &&
+              bboard::IS_AGENT(obs.GetItem(next_pos.x, next_pos.y))) {
+                if (visited.find(next_pos) == visited.end()) {
+                  q.insert(q.begin(), next_pos);
+                  visited.insert(next_pos);
+                }
+            }
+        }
+    }
+    return true;
+}
+
+int compute_min_evade_step(bboard::Observation obs,
+  std::unordered_set<bboard::Position> parent_pos_list, bboard::Position pos,
+  std::vector<std::vector<int>> bomb_real_life) {
+    std::tuple<bool, int, int> covered = position_covered_by_bomb(obs, pos, bomb_real_life);
+    bool flag_cover = std::get<0>(covered);
+    int min_cover_value = std::get<1>(covered);
+    int max_cover_value = std::get<2>(covered);
+    if (!flag_cover) {
+        return 0;
+    } else if (parent_pos_list.size() >= max_cover_value) {
+        if (parent_pos_list.size() > max_cover_value + FLAME_LIFE) {
+            return 0;
+        } else {
+            return INT_MAX;
+        }
+    } else if (parent_pos_list.size() >= min_cover_value) {
+        if (parent_pos_list.size() > min_cover_value + FLAME_LIFE) {
+            return 0;
+        } else {
+            return INT_MAX;
+        }
+    } else {
+        // board = obs['board'] weggelassen, da mit cpp obs von board erbt
+        std::vector<bboard::Move> dirs = all_directions();
+        int min_step = INT_MAX;
+        for (bboard::Move d : dirs) {
+            bboard::Position next_pos = bboard::util::DesiredPosition(pos.x, pos.y, d);
+            if (bboard::IsOutOfBounds(next_pos.x, next_pos.y)) {
+                continue;
+            }
+            // is walkable is identical to is powerup or is item
+            if (!bboard::IS_WALKABLE(obs.GetItem(next_pos.x, next_pos.y))) {
+                continue;
+            }
+            if (parent_pos_list.find(next_pos) != parent_pos_list.end()) {
+                continue;
+            }
+            std::unordered_set<bboard::Position> next_parent_pos_list = parent_pos_list;
+            next_parent_pos_list.insert(next_pos);
+            int x = compute_min_evade_step(obs, next_parent_pos_list,
+              next_pos, bomb_real_life);
+            int min_step = std::min(min_step, x+1);
+        }
+        return min_step;
+    }
+}
+
+
+unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
+  bool exclude_kicking, std::vector<bboard::Observation> prev_two_obs) {
+    std::vector<bboard::Move> dirs = all_directions();
+    unordered_set<bboard::Move> ret;
+    bboard::Position my_position;
+    my_position.x = obs.agents[obs.agentID].x;
+    my_position.y = obs.agents[obs.agentID].y;
+    // board = obs['board'] weggelassen, da mit cpp obs von board erbt
+    std::vector<std::vector<int>> bomb_blast_st = get_bomb_blast_st(obs.bombs);
+    std::vector<std::vector<int>> bomb_life = get_bomb_blast_st(obs.bombs);
+}
+
 
 }
