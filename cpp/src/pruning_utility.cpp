@@ -121,4 +121,45 @@ std::vector<std::vector<int>> all_bomb_real_life(bboard::Board board,
     return bomb_real_life_map;
 }
 
+std::tuple<bool, int, int> position_covered_by_bomb(bboard::Observation obs,
+  bboard::Position pos, std::vector<std::vector<int>> bomb_real_life_map) {
+    //return a tuple (True/False, min_bomb_life_value, max life value)
+    bboard::Position min_bomb_pos, max_bomb_pos;
+    min_bomb_pos.x = -1;
+    int min_bomb_value = INT_MAX, max_bomb_value = -INT_MAX;
+    if (obs.GetBomb(pos.x, pos.y) > 0) {
+        min_bomb_value = max_bomb_value = bomb_real_life_map[pos.x][pos.y];
+        min_bomb_pos = max_bomb_pos = pos;
+    }
+    std::vector<bboard::Move> dirs = all_directions();
+    // board = obs['board'] weggelassen, da mit cpp obs von board erbt
+    for (bboard::Move d : dirs) {
+        bboard::Position next_pos = pos;
+        while (true) {
+            next_pos = bboard::util::DesiredPosition(next_pos.x, next_pos.y, d);
+            if (stop_condition(obs, next_pos)) {
+                //here should assume agents are dynamic
+                break;
+            }
+            bboard::Bomb bomb = *(obs.GetBomb(next_pos.x, next_pos.y));
+            if (bomb > 0 && bboard::BMB_STRENGTH(bomb) - 1 >=
+              manhattan_distance(pos, next_pos)) {
+                if (bomb_real_life_map[next_pos.x][next_pos.y] < min_bomb_value) {
+                    int min_bomb_value = bomb_real_life_map[next_pos.x][next_pos.y];
+                    min_bomb_pos = next_pos;
+                }
+                if (bomb_real_life_map[next_pos.x][next_pos.y] > max_bomb_value) {
+                    int max_bomb_value = bomb_real_life_map[next_pos.x][next_pos.y];
+                    max_bomb_pos = next_pos;
+                }
+                break;
+            }
+        }
+    }
+    if (min_bomb_pos.x != -1) {
+        return std::make_tuple(true, min_bomb_value, max_bomb_value);
+    }
+    return std::make_tuple(false, INT_MAX, -INT_MAX);
+}
+
 }

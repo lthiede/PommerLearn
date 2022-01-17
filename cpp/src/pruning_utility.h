@@ -14,6 +14,7 @@ namespace action_pruning
 {
 
 const float EPSILON = 0.001;
+const int INT_MAX = 9999;
 
 //Step 1:
 float manhattan_distance(bboard::Position pos1, bboard::Position pos2);
