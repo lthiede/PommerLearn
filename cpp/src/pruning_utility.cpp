@@ -348,9 +348,9 @@ unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
     my_position.y = obs.agents[obs.agentID].y;
     // board = obs['board'] weggelassen, da mit cpp obs von board erbt
     std::vector<std::vector<int>> blast_st = get_bomb_blast_st(obs.bombs);
-    std::vector<std::vector<int>> bomb_life = get_bomb_blast_life(obs.bombs);
+    std::vector<std::vector<int>> bomb_life = get_bomb_life(obs.bombs);
     bool can_kick = obs.agents[obs.agentID].canKick;
-    bboard::Direction kick_dir;
+    bboard::Move kick_dir = bboard::Move::IDLE; // IDLE is null value
     std::vector<std::vector<int>> bomb_real_life_map = all_bomb_real_life(obs,
       bomb_life, blast_st);
     bool flag_cover_passages = false;
@@ -376,7 +376,7 @@ unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
             // three consecutive flames means next step this position must be good
             // make this a candidate
             obs.items[position.x][position.y] = bboard::Item::PASSAGE;
-            gone_flame_pos = position
+            gone_flame_pos = position;
         }
 
         if (bboard::IS_WALKABLE(obs.GetItem(position.x, position.y))) {
@@ -387,18 +387,18 @@ unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
                 obs.items[my_position.x][my_position.y] = bboard::Item::PASSAGE;
             }
             std::tuple<bool, int, int> covered = position_covered_by_bomb(obs,
-              pos, bomb_real_life);
+              position, bomb_real_life_map);
             bool flag_cover = std::get<0>(covered);
             int min_cover_value = std::get<1>(covered);
             int max_cover_value = std::get<2>(covered);
             if (!flag_cover) {
-                ret.insert(direction)
+                ret.insert(direction);
             } else {
                 flag_cover_passages = true;
                 std::unordered_set<bboard::Position> parent_pos_list;
-                parent_pos_list.insert(pos);
+                parent_pos_list.insert(position);
                 int min_escape_step = compute_min_evade_step(obs,
-                  parent_pos_list, pos, bomb_real_life_map);
+                  parent_pos_list, position, bomb_real_life_map);
                 // assert min escape step > 0
                 if (min_escape_step < min_cover_value) {
                     ret.insert(direction);
@@ -407,7 +407,7 @@ unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
             obs.items[my_position.x][my_position.y] = my_id;
         }
         if (gone_flame_pos.x > -1) {
-            obs.items[gone_flame_pos.x][gone_flame_pos.y] = bboard::Item:FLAME;
+            obs.items[gone_flame_pos.x][gone_flame_pos.y] = bboard::Item::FLAME;
         }
     }
     // Test stop action only when agent is covered by bomb
@@ -420,7 +420,7 @@ unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
     }
     //REMEMBER: before compute min evade step, modify board accordingly first..
     std::tuple<bool, int, int> covered = position_covered_by_bomb(obs,
-      pos, bomb_real_life);
+      my_position, bomb_real_life_map);
     bool flag_cover = std::get<0>(covered);
     int min_cover_value = std::get<1>(covered);
     int max_cover_value = std::get<2>(covered);
@@ -436,8 +436,64 @@ unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
         ret.insert(bboard::Move::IDLE);
     }
     obs.items[my_position.x][my_position.y] = my_id;
-    // REMEMVER: change the board back
+    // REMEMBER: change the board back
+
+
+    // Now test bomb action
+    if (!(obs.agents[obs.agentID].maxBombCount -
+      obs.agents[obs.agentID].bombCount <= 0 ||
+      bomb_life[my_position.x][my_position.y] > 0)) {
+        // place bomb might be possible
+        if (BOMBING_TEST == "simple") {
+            if (!flag_cover) {
+                ret.insert(bboard::Move::BOMB);
+            }
+        } else if (BOMBING_TEST == "simple_adjacent") {
+            if (!flag_cover && !flag_cover_passages) {
+                ret.insert(bboard::Move::BOMB);
+            }
+        } else { // lookahead
+            if (ret.find(bboard::Move::IDLE) != ret.end() && ret.size() > 1 &&
+              kick_dir != bboard::Move::IDLE) { // IDLE is null value
+                bboard::Observation obs2 = obs; // hope this is a deep copy
+                bboard::Position my_pos;
+                my_pos.x = obs2.agents[obs2.agentID].x;
+                my_pos.y = obs2.agents[obs2.agentID].y;
+                obs.items[my_position.x][my_position.y] = bboard::Item::BOMB;
+                std::vector<std::vector<int>> blast_st2 = get_bomb_blast_st(obs.bombs);
+                std::vector<std::vector<int>> bomb_life2 = get_bomb_life(obs.bombs);
+                if (flag_cover) {
+                    bomb_life2[my_pos.x][my_pos.y] = min_cover_value;
+                } else {
+                    bomb_life2[my_pos.x][my_pos.y] = 10;
+                }
+                std::vector<std::vector<int>> bomb_real_life_map2 =
+                  all_bomb_real_life(obs2, bomb_life2, blast_st2);
+                std::unordered_set<bboard::Position> parent_pos_list;
+                parent_pos_list.insert(my_position);
+                int min_evade_step = compute_min_evade_step(obs2, parent_pos_list,
+                  my_pos, bomb_real_life_map2);
+                int current_cover_value = bomb_life2[my_pos.x][my_pos.y];
+                if (min_evade_step < current_cover_value) {
+                    ret.insert(bboard::Move::BOMB);
+                }
+            }
+        }
+    }
+    return ret;
 }
 
+std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
+  std::vector<bboard::Observation> prev_two_obs) {
+    if (obs.agents[obs.agentID].dead) {
+        std::vector<bboard::Move> ret;
+        ret.insert(bboard::Move::IDLE);
+        return ret;
+    }
+    bboard::Observation obs_cpy = obs;
+    if (prev_two_obs.size() >= 1) {
+        obs = move
+    }
+}
 
 }

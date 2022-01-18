@@ -16,6 +16,12 @@
 namespace action_pruning
 {
 
+// Change BOMBING_TEST for different pruning options on bomb placing.
+// TODO: 1) Moving bomb detection 2) other agent movements.
+
+// const string BOMBING_TEST = "simple";
+// const string BOMBING_TEST = "simple_adjacent";
+const string BOMBING_TEST = "lookahead";
 const float EPSILON = 0.001;
 const int INT_MAX = 9999;
 const int FLAME_LIFE = 2;
@@ -59,5 +65,8 @@ int compute_min_evade_step(bboard::Observation obs,
 unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
   std::vector<bboard::Observation> prev_two_obs, bool exclude_kicking = false);
 }
+// Step 5:
+std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
+  std::vector<bboard::Observation> prev_two_obs);
 
 #endif //MCTSAGENT_CPP_PRUNING_UTILITY_H
