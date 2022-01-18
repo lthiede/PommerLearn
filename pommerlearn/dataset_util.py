@@ -410,7 +410,7 @@ def get_value_target(z, value_version: int, discount_factor: float, mcts_val_wei
 
         # TODO: Adapt for team mode
         if value_version == 1:
-            # only distribute rewards when the (agent) episode is done
+
             if winner == agent_id:
                 episode_value = 1
             elif dead:
@@ -419,7 +419,23 @@ def get_value_target(z, value_version: int, discount_factor: float, mcts_val_wei
                 # episode not done
                 episode_value = 0
 
+                # NEW VERSION 1
+                obs = z['obs'][agent_ep_idx]
+                act = z['act'][agent_ep_idx]  # act ist schon numerisch codiert
+
+                print("Action: " + str(act))
+
+                if agent_ep_idx == 0:
+                    old_obs = obs
+                    old_act = 0
+                else:
+                    old_obs = z['obs'][agent_ep_idx - 1]
+                    old_act = z['act'][agent_ep_idx - 1]
+
+                episode_value = reward_shaping.get_reward(episode_value, obs, old_obs, act, old_act)
+
             episode_target = get_combined_target(episode_mcts_val, episode_value, episode_discounting)
+
         elif value_version == 2:
             # get number of opponents that died before our agent
             if dead:
@@ -462,26 +478,6 @@ def get_value_target(z, value_version: int, discount_factor: float, mcts_val_wei
 
             episode_value = -1 + 4.0 / 7 * num_dead_opponents + (0 if dead else 2.0 / 7)
             episode_target = get_combined_target(episode_mcts_val, episode_value, episode_discounting)
-
-        # OUR _NEW_ VERSION OF THE REWARD SHAPING
-        elif value_version == 5:
-
-            obs = z['obs'][agent_ep_idx]
-            act = z['act'][agent_ep_idx] # TODO SIND DIE ACTIONS SCHON NUMERISCH CODIERT?
-
-            print("Action: " + str(act))
-
-            if agent_ep_idx == 0:
-                old_obs = obs
-                old_act = 0
-            else:
-                old_obs = z['obs'][agent_ep_idx - 1]
-                old_act = z['act'][agent_ep_idx - 1]
-
-            episode_target = reward_shaping.get_reward(obs, old_obs, act, old_act)  # TODO
-
-            import sys
-            sys.exit()
 
         else:
             raise ValueError(f"Unknown value version {value_version}")
