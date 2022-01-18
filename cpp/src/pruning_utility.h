@@ -11,6 +11,7 @@
 #include <vector>
 #include <unordered_set>
 #include <algorithm>
+#include <stdexcept>
 
 namespace action_pruning
 {
@@ -21,11 +22,23 @@ const int FLAME_LIFE = 2;
 
 // Step 0:
 // additional helpers
-std::vector<std::vector<int>> get_bomb_blast_st(bboard::FixedQueue<bboard::Bomb, bboard::MAX_BOMBS> bombs);
+std::vector<std::vector<int>> get_bomb_blast_st(bboard::FixedQueue<bboard::Bomb,
+  bboard::MAX_BOMBS> bombs);
+std::vector<std::vector<int>> get_bomb_life(bboard::FixedQueue<bboard::Bomb,
+  bboard::MAX_BOMBS> bombs);
 // Step 1:
 // müssen wir die wirklich hier aufführen? sind ja nur intern
+bool moving_bomb_check(bboard::Board board,
+  std::vector<std::vector<int>> bomb_life,
+  std::vector<std::vector<int>> blast_st, bboard::Position moving_bomb_pos,
+  bboard::Direction p_dir, int time_elapsed);
+  bool kick_test(bboard::Board board,
+    std::vector<std::vector<int>> blast_st,
+    std::vector<std::vector<int>> bomb_life, bboard::Position my_position,
+    bboard::Move direction);
 float manhattan_distance(bboard::Position pos1, bboard::Position pos2);
-bool stop_condition(bboard::Board board, bboard::Position pos, bool exclude_agent = true);
+bool stop_condition(bboard::Board board, bboard::Position pos,
+  bool exclude_agent = true);
 // can't be bboard::Direction because of idle
 std::vector<bboard::Move> all_directions(bool exclude_stop = true);
 bboard::Direction opposite_direction(bboard::Direction direction);

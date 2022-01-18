@@ -18,6 +18,82 @@ std::vector<std::vector<int>> get_bomb_blast_st(bboard::FixedQueue<bboard::Bomb,
     return bomb_blast_st;
 }
 
+std::vector<std::vector<int>> get_bomb_life(bboard::FixedQueue<bboard::Bomb,
+  bboard::MAX_BOMBS> bombs) {
+    std::vector<std::vector<int>> bomb_life(bboard::BOARD_SIZE,
+      std::vector<int>(bboard::BOARD_SIZE));
+    while (bombs.count > 0) {
+        bboard::Bomb bomb = bombs.PopElem();
+        bomb_life[bboard::BMB_POS_X(bomb)][bboard::BMB_POS_Y(bomb)] = bboard::BMB_TIME(bomb);
+    }
+    return bomb_life;
+}
+
+bool moving_bomb_check(bboard::Board board,
+  std::vector<std::vector<int>> blast_st,
+  std::vector<std::vector<int>> bomb_life, bboard::Position moving_bomb_pos,
+  bboard::Move p_dir, int time_elapsed) {
+    bboard::Position pos2 = bboard::util::DesiredPosition(moving_bomb_pos.x,
+      moving_bomb_pos.y, p_dir);
+    int dist = 0;
+    for (int i = 0; i < 10; i++) {
+        dist += 1;
+        if (bboard::IsOutOfBounds(pos2.x, pos2.y)) {
+            break;
+        }
+        if (!bboard::IS_WALKABLE(board.GetItem(pos2.x, pos2.y))) {
+            break;
+        }
+        int life_now = bomb_life[pos2.x][pos2.y] - time_elapsed;
+        if (bomb_life[pos2.x][pos2.y] > 0 && life_now >= -2 && life_now <= 0 &&
+          dist < blast_st[pos2.x][pos2.y]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool kick_test(bboard::Board board,
+  std::vector<std::vector<int>> blast_st,
+  std::vector<std::vector<int>> bomb_life, bboard::Position my_position,
+  bboard::Move direction) {
+    bboard::Position next_position = bboard::util::DesiredPosition(my_position.x,
+      my_position.y, direction);
+    if (!board.HasBomb(my_position.x, my_position.y)) {
+        throw std::invalid_argument( "no bomb at position" );
+    }
+    int life_value = bomb_life[next_position.x][next_position.y];
+    int strength = blast_st[next_position.x][next_position.y];
+    int dist = 0;
+    bboard::Position pos = bboard::util::DesiredPosition(next_position.x,
+      next_position.y, direction);
+    std::vector<bboard::Move> perpendicular_dirs;
+    if (direction == bboard::Move::LEFT || direction == bboard::Move::LEFT) {
+        perpendicular_dirs.push_back(bboard::Move::UP);
+        perpendicular_dirs.push_back(bboard::Move::DOWN);
+    } else {
+        perpendicular_dirs.push_back(bboard::Move::LEFT);
+        perpendicular_dirs.push_back(bboard::Move::RIGHT);
+    }
+    for (int i = 0; i < life_value; i++) {
+        if (!bboard::IsOutOfBounds(pos.x, pos.y) &&
+          board.GetItem(pos.x, pos.y) == bboard::Item::PASSAGE) {
+            // do a check if this position happens to be in flame when the moving bomb arrives!
+            if (!(moving_bomb_check(board, blast_st, bomb_life, pos,
+              perpendicular_dirs[0], i) && moving_bomb_check(board, blast_st,
+              bomb_life, pos, perpendicular_dirs[1], i))) {
+                break;
+            }
+            dist += 1;
+        } else {
+            break;
+        }
+        pos = bboard::util::DesiredPosition(pos.x, pos.y, direction);
+        // can kick and kick direction is valid
+    }
+    return dist > strength;
+}
+
 float manhattan_distance(bboard::Position pos1, bboard::Position pos2) {
     return std::abs(pos1.x - pos2.x) + std::abs(pos1.y - pos2.y);
 }
@@ -263,17 +339,104 @@ int compute_min_evade_step(bboard::Observation obs,
     }
 }
 
-
 unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
-  bool exclude_kicking, std::vector<bboard::Observation> prev_two_obs) {
+  std::vector<bboard::Observation> prev_two_obs, bool exclude_kicking) {
     std::vector<bboard::Move> dirs = all_directions();
     unordered_set<bboard::Move> ret;
     bboard::Position my_position;
     my_position.x = obs.agents[obs.agentID].x;
     my_position.y = obs.agents[obs.agentID].y;
     // board = obs['board'] weggelassen, da mit cpp obs von board erbt
-    std::vector<std::vector<int>> bomb_blast_st = get_bomb_blast_st(obs.bombs);
-    std::vector<std::vector<int>> bomb_life = get_bomb_blast_st(obs.bombs);
+    std::vector<std::vector<int>> blast_st = get_bomb_blast_st(obs.bombs);
+    std::vector<std::vector<int>> bomb_life = get_bomb_blast_life(obs.bombs);
+    bool can_kick = obs.agents[obs.agentID].canKick;
+    bboard::Direction kick_dir;
+    std::vector<std::vector<int>> bomb_real_life_map = all_bomb_real_life(obs,
+      bomb_life, blast_st);
+    bool flag_cover_passages = false;
+    for (bboard::Move direction : dirs) {
+        bboard::Position position = bboard::util::DesiredPosition(my_position.x,
+          my_position.y, direction);
+        if (bboard::IsOutOfBounds(my_position.x, my_position.y)) {
+            continue;
+        }
+        if (!exclude_kicking && obs.HasBomb(position.x, position.y) &&
+          can_kick) {
+            // filter kick if kick is unsafe
+            if (kick_test(obs, blast_st, bomb_real_life_map, my_position,
+              direction)) {
+                ret.insert(direction);
+                kick_dir = direction;
+            }
+        }
+        bboard::Position gone_flame_pos;
+        gone_flame_pos.x = -1;
+        if (prev_two_obs.size() == 2 && check_if_flame_will_be_gone(obs,
+          prev_two_obs, position)) {
+            // three consecutive flames means next step this position must be good
+            // make this a candidate
+            obs.items[position.x][position.y] = bboard::Item::PASSAGE;
+            gone_flame_pos = position
+        }
+
+        if (bboard::IS_WALKABLE(obs.GetItem(position.x, position.y))) {
+            int my_id = obs.GetItem(my_position.x, my_position.y);
+            if (bomb_life[my_position.x][my_position.y] > 0) {
+                obs.items[my_position.x][my_position.y] = bboard::Item::BOMB;
+            } else {
+                obs.items[my_position.x][my_position.y] = bboard::Item::PASSAGE;
+            }
+            std::tuple<bool, int, int> covered = position_covered_by_bomb(obs,
+              pos, bomb_real_life);
+            bool flag_cover = std::get<0>(covered);
+            int min_cover_value = std::get<1>(covered);
+            int max_cover_value = std::get<2>(covered);
+            if (!flag_cover) {
+                ret.insert(direction)
+            } else {
+                flag_cover_passages = true;
+                std::unordered_set<bboard::Position> parent_pos_list;
+                parent_pos_list.insert(pos);
+                int min_escape_step = compute_min_evade_step(obs,
+                  parent_pos_list, pos, bomb_real_life_map);
+                // assert min escape step > 0
+                if (min_escape_step < min_cover_value) {
+                    ret.insert(direction);
+                }
+            }
+            obs.items[my_position.x][my_position.y] = my_id;
+        }
+        if (gone_flame_pos.x > -1) {
+            obs.items[gone_flame_pos.x][gone_flame_pos.y] = bboard::Item:FLAME;
+        }
+    }
+    // Test stop action only when agent is covered by bomb
+    // otherwise stop is always an viable option
+    int my_id = obs.GetItem(my_position.x, my_position.y);
+    if (bomb_life[my_position.x][my_position.y] > 0) {
+        obs.items[my_position.x][my_position.y] = bboard::Item::BOMB;
+    } else {
+        obs.items[my_position.x][my_position.y] = bboard::Item::PASSAGE;
+    }
+    //REMEMBER: before compute min evade step, modify board accordingly first..
+    std::tuple<bool, int, int> covered = position_covered_by_bomb(obs,
+      pos, bomb_real_life);
+    bool flag_cover = std::get<0>(covered);
+    int min_cover_value = std::get<1>(covered);
+    int max_cover_value = std::get<2>(covered);
+    if (flag_cover) {
+        std::unordered_set<bboard::Position> parent_pos_list;
+        parent_pos_list.insert(my_position);
+        int min_escape_step = compute_min_evade_step(obs, parent_pos_list,
+          my_position, bomb_real_life_map);
+        if (min_escape_step < min_cover_value) {
+            ret.insert(bboard::Move::IDLE);
+        }
+    } else {
+        ret.insert(bboard::Move::IDLE);
+    }
+    obs.items[my_position.x][my_position.y] = my_id;
+    // REMEMVER: change the board back
 }
 
 
