@@ -29,6 +29,54 @@ std::vector<std::vector<int>> get_bomb_life(bboard::FixedQueue<bboard::Bomb,
     return bomb_life;
 }
 
+bboard::Position get_next_position(bboard::Position position, bboard::Direction direction) {
+
+    bboard::Position ret;
+
+    if (direction == bboard::Move::RIGHT) {
+        ret.x = position.x;
+        ret.y = position.y + 1;
+    }
+    else if (direction == bboard::Move::LEFT) {
+        ret.x = position.x;
+        ret.y = position.y - 1;
+    }
+    else if (direction == bboard::Move::DOWN) {
+        ret.x = position.x;
+        ret.y = position.y + 1;
+    }
+    else if (direction == bboard::Move::UP) {
+        ret.x = position.x - 1;
+        ret.y = position.y;
+    }
+    else if (direction == bboard::Move::IDLE) {
+        ret.x = position.x;
+        ret.y = position.y;
+    }
+
+    return ret;
+}
+
+bool is_moving_direction(bboard::Position bomb_pos, bboard::Direction direction, bboard::Observation prev_obs) {
+    rev_d = opposite_direction(direction);
+    rev_pos = get_next_position(bomb_pos, rev_d);
+    if (bboard::IsOutOfBounds(rev_pos.x, rev_pos.y)) {
+        return false;
+    }
+    bomb_rev_pos = prev_obs.board.GetBomb(rev_pos.x, rev_pos.y); // TODO möglicher Fehler wegen obs.board
+    bomb_bomb_pos = obs.board.GetBomb(bomb_pos.x, bomb_pos.y); // TODO möglicher Fehler wegen obs.board
+    bomb_life_rev_pos = bboard::BMB_TIME(bomb_rev_pos);
+    bomb_life_bomb_pos = bboard::BMB_TIME(bomb_bomb_pos);
+    bomb_strength_rev_pos = bboard::BMB_STRENGTH(bomb_rev_pos);
+    bomb_strength_bomb_pos = bboard::BMB_STRENGTH(bomb_bomb_pos);
+    if (bomb_life_rev_pos - 1 == bomb_life_bomb_pos &&
+      bomb_strength_rev_pos == bomb_strength_bomb_pos &&
+      prev_obs.board.GetItem(bomb_pos.x, bomb_pos.y) == bboard::Item::PASSAGE) { // TODO möglicher Fehler wegen obs.board
+        return true;
+    }
+    return false;
+}
+
 bool moving_bomb_check(bboard::Board board,
   std::vector<std::vector<int>> blast_st,
   std::vector<std::vector<int>> bomb_life, bboard::Position moving_bomb_pos,
@@ -494,6 +542,10 @@ std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
     if (prev_two_obs.size() >= 1) {
         obs = move
     }
+}
+
+bboard::Observation move_moving_bombs_to_next_position(bboard::Observation obs, bboard::Observation prev_obs) {
+    \\ TODO
 }
 
 }
