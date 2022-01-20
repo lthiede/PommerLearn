@@ -49,7 +49,7 @@ bboard::Position get_next_position(bboard::Position position, bboard::Direction 
         ret.x = position.x - 1;
         ret.y = position.y;
     }
-    else if (direction == bboard::Move::IDLE) {
+    else {
         ret.x = position.x;
         ret.y = position.y;
     }
@@ -63,15 +63,15 @@ bool is_moving_direction(bboard::Position bomb_pos, bboard::Direction direction,
     if (bboard::IsOutOfBounds(rev_pos.x, rev_pos.y)) {
         return false;
     }
-    bomb_rev_pos = prev_obs.board.GetBomb(rev_pos.x, rev_pos.y); // TODO möglicher Fehler wegen obs.board
-    bomb_bomb_pos = obs.board.GetBomb(bomb_pos.x, bomb_pos.y); // TODO möglicher Fehler wegen obs.board
+    bomb_rev_pos = prev_obs.GetBomb(rev_pos.x, rev_pos.y);
+    bomb_bomb_pos = obs.GetBomb(bomb_pos.x, bomb_pos.y);
     bomb_life_rev_pos = bboard::BMB_TIME(bomb_rev_pos);
     bomb_life_bomb_pos = bboard::BMB_TIME(bomb_bomb_pos);
     bomb_strength_rev_pos = bboard::BMB_STRENGTH(bomb_rev_pos);
     bomb_strength_bomb_pos = bboard::BMB_STRENGTH(bomb_bomb_pos);
     if (bomb_life_rev_pos - 1 == bomb_life_bomb_pos &&
       bomb_strength_rev_pos == bomb_strength_bomb_pos &&
-      prev_obs.board.GetItem(bomb_pos.x, bomb_pos.y) == bboard::Item::PASSAGE) { // TODO möglicher Fehler wegen obs.board
+      prev_obs.GetItem(bomb_pos.x, bomb_pos.y) == bboard::Item::PASSAGE) {
         return true;
     }
     return false;
@@ -545,7 +545,47 @@ std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
 }
 
 bboard::Observation move_moving_bombs_to_next_position(bboard::Observation obs, bboard::Observation prev_obs) {
-    \\ TODO
+    bboard::Bomb bombs = obs.bombs;
+    bboard::Bomb moving_bombs[40] {};
+    bboard::Direction moving_bomb_directions[40] {};
+    int number_of_moving_bombs = 0;
+    for (bboard::Bomb bomb : bombs) {
+        if (is_moving_direction(bomb, bboard::Direction::LEFT, prev_obs)) {
+            moving_bombs[number_of_moving_bombs] = bomb;
+            moving_bomb_directions[number_of_moving_bombs] = bboard::Direction::LEFT;
+        }
+        else if (is_moving_direction(bomb, bboard::Direction::RIGHT, prev_obs)) {
+            moving_bombs[number_of_moving_bombs] = bomb;
+            moving_bomb_directions[number_of_moving_bombs] = bboard::Direction::RIGHT;
+        }
+        else if (is_moving_direction(bomb, bboard::Direction::UP, prev_obs)) {
+            moving_bombs[number_of_moving_bombs] = bomb;
+            moving_bomb_directions[number_of_moving_bombs] = bboard::Direction::UP;
+        }
+        else if (is_moving_direction(bomb, bboard::Direction::DOWN, prev_obs)) {
+            moving_bombs[number_of_moving_bombs] = bomb;
+            moving_bomb_directions[number_of_moving_bombs] = bboard::Direction::DOWN;
+        }
+        else {
+            number_of_moving_bombs--;
+        }
+        number_of_moving_bombs++;
+    }
+
+    for (int i = 0; i < number_of_moving_bombs; i++) {
+        bboard::Bomb bomb = moving_bombs[i];
+        bboard::Direction moving_dir = moving_bomb_directions[i];
+        bboard::Position bomb_pos = bboard::BMB_POS(bomb);
+
+        bboard::Position next_pos = get_next_position(bomb_pos, moving_dir);
+
+        if (!IsOutOfBounds(next_pos.x, next_pos.y)) {
+            if (obs.GetItem(next_pos.x, next_pos.y) == bboard::Item::PASSAGE) {
+                bboard::SetBombPosition(bomb, next_pos);
+            }
+        }
+    }
+    return obs
 }
 
 }
