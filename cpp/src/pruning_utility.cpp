@@ -538,10 +538,14 @@ std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
         ret.insert(bboard::Move::IDLE);
         return ret;
     }
-    bboard::Observation obs_cpy = obs;
     if (prev_two_obs.size() >= 1) {
-        obs = move
+        obs = move_moving_bombs_to_next_position(obs, prev_two_obs[prev_two_obs.size() - 1]);
     }
+    ret = compute_safe_actions(obs, prev_two_obs, true);
+    if (ret.size() == 0): {
+        ret.insert(bboard::Move::IDLE);
+    }
+    return ret;
 }
 
 bboard::Observation move_moving_bombs_to_next_position(bboard::Observation obs, bboard::Observation prev_obs) {
