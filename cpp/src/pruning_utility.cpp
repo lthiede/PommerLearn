@@ -534,11 +534,11 @@ std::unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
     return ret;
 }
 
-std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
+std::unordered_set<bboard::Move> get_filtered_actions(bboard::Observation obs,
   std::vector<bboard::Observation> prev_two_obs) {
-    std::vector<bboard::Move> ret;
+    std::unordered_set<bboard::Move> ret;
     if (obs.agents[obs.agentID].dead) {
-        ret.push_back(bboard::Move::IDLE);
+        ret.insert(bboard::Move::IDLE);
         return ret;
     }
     if (prev_two_obs.size() > 1) {
@@ -546,7 +546,7 @@ std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
     }
     ret = compute_safe_actions(obs, prev_two_obs, true);
     if (ret.size() == 0) {
-        ret.push_back(bboard::Move::IDLE);
+        ret.insert(bboard::Move::IDLE);
     }
     return ret;
 }

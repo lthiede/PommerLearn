@@ -206,7 +206,7 @@ std::vector<Action> PommermanState::legal_actions() const
 
     std::vector<bboard::Observation> prev_two_obs = {obs};  // TODO
 
-    std::vector<bboard::Move> filtered_actions = get_filtered_actions(obs, prev_two_obs);
+    std::unordered_set<bboard::Move> filtered_actions = get_filtered_actions(obs, prev_two_obs);
 
     std::vector<Action> ret;
     for (bboard::Move move : filtered_actions) {
