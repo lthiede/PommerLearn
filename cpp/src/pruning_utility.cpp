@@ -538,7 +538,7 @@ std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
         ret.insert(bboard::Move::IDLE);
         return ret;
     }
-    if (prev_two_obs.size() >= 1) {
+    if (prev_two_obs.size() > 1) {
         obs = move_moving_bombs_to_next_position(obs, prev_two_obs[prev_two_obs.size() - 1]);
     }
     ret = compute_safe_actions(obs, prev_two_obs, true);
