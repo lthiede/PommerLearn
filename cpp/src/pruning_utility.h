@@ -21,9 +21,9 @@ namespace action_pruning
 
 // const string BOMBING_TEST = "simple";
 // const string BOMBING_TEST = "simple_adjacent";
-const string BOMBING_TEST = "lookahead";
+const std::string BOMBING_TEST = "lookahead";
 const float EPSILON = 0.001;
-const int INT_MAX = 9999;
+// const int INT_MAX_ = 9999;
 const int FLAME_LIFE = 2;
 
 // Step 0:
@@ -33,7 +33,7 @@ std::vector<std::vector<int>> get_bomb_blast_st(bboard::FixedQueue<bboard::Bomb,
 std::vector<std::vector<int>> get_bomb_life(bboard::FixedQueue<bboard::Bomb,
   bboard::MAX_BOMBS> bombs);
 bboard::Position get_next_position(bboard::Position position, bboard::Direction direction);
-bool is_moving_direction(bboard::Position bomb_pos, bboard::Direction direction, bboard::Observation prev_obs);
+bool is_moving_direction(bboard::Observation obs, bboard::Position bomb_pos, bboard::Direction direction, bboard::Observation prev_obs);
 
 // Step 1:
 // müssen wir die wirklich hier aufführen? sind ja nur intern
@@ -68,15 +68,15 @@ int compute_min_evade_step(bboard::Observation obs,
   std::vector<std::vector<int>> bomb_real_life);
 
 // Step 4:
-unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
+std::unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
   std::vector<bboard::Observation> prev_two_obs, bool exclude_kicking = false);
 }
 
 // Step 5:
+bboard::Observation move_moving_bombs_to_next_position(bboard::Observation obs, bboard::Observation prev_obs);
+
+// Step 6:
 std::vector<bboard::Move> get_filtered_actions(bboard::Observation obs,
   std::vector<bboard::Observation> prev_two_obs);
-
-// Step ?:
-bboard::Observation move_moving_bombs_to_next_position(bboard::Observation obs, bboard::Observation prev_obs);
 
 #endif //MCTSAGENT_CPP_PRUNING_UTILITY_H
