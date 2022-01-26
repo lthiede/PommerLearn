@@ -70,7 +70,6 @@ int compute_min_evade_step(bboard::Observation obs,
 // Step 4:
 std::unordered_set<bboard::Move> compute_safe_actions(bboard::Observation obs,
   std::vector<bboard::Observation> prev_two_obs, bool exclude_kicking = false);
-}
 
 // Step 5:
 bboard::Observation move_moving_bombs_to_next_position(bboard::Observation obs, bboard::Observation prev_obs);
@@ -78,5 +77,6 @@ bboard::Observation move_moving_bombs_to_next_position(bboard::Observation obs, 
 // Step 6:
 std::unordered_set<bboard::Move> get_filtered_actions(bboard::Observation obs,
   std::vector<bboard::Observation> prev_two_obs);
+}
 
 #endif //MCTSAGENT_CPP_PRUNING_UTILITY_H

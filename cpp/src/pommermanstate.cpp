@@ -7,7 +7,7 @@
 #include "pommermanstate.h"
 #include "data_representation.h"
 #include "agents.hpp"
-#include "pruning_utility.h"
+#include "action_pruning.h"
 
 uint StateConstantsPommerman::auxiliaryStateSize = 0;
 
@@ -206,7 +206,7 @@ std::vector<Action> PommermanState::legal_actions() const
 
     std::vector<bboard::Observation> prev_two_obs = {obs};  // TODO
 
-    std::unordered_set<bboard::Move> filtered_actions = get_filtered_actions(obs, prev_two_obs);
+    std::unordered_set<bboard::Move> filtered_actions = action_pruning::get_filtered_actions(obs, prev_two_obs);
 
     std::vector<Action> ret;
     for (bboard::Move move : filtered_actions) {
