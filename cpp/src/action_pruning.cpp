@@ -263,8 +263,8 @@ std::tuple<bool, int, int> position_covered_by_bomb(bboard::Observation obs,
     bboard::Position min_bomb_pos;
     bboard::Position max_bomb_pos;
     min_bomb_pos.x = -1;
-    int min_bomb_value = INT_MAX;
-    int max_bomb_value = -INT_MAX;
+    int min_bomb_value = 9999;
+    int max_bomb_value = -9999;
     if (obs.GetBomb(pos.x, pos.y) > 0) {
         min_bomb_value = max_bomb_value = bomb_real_life_map[pos.x][pos.y];
         min_bomb_pos = max_bomb_pos = pos;
@@ -279,8 +279,8 @@ std::tuple<bool, int, int> position_covered_by_bomb(bboard::Observation obs,
                 //here should assume agents are dynamic
                 break;
             }
-            bboard::Bomb bomb = *(obs.GetBomb(next_pos.x, next_pos.y));
-            if (bomb > 0 && bboard::BMB_STRENGTH(bomb) - 1 >=
+            bboard::Bomb* bomb = obs.GetBomb(next_pos.x, next_pos.y);
+            if (bomb != nullptr && bboard::BMB_STRENGTH(*bomb) - 1 >=
               manhattan_distance(pos, next_pos)) {
                 if (bomb_real_life_map[next_pos.x][next_pos.y] < min_bomb_value) {
                     int min_bomb_value = bomb_real_life_map[next_pos.x][next_pos.y];
@@ -297,7 +297,7 @@ std::tuple<bool, int, int> position_covered_by_bomb(bboard::Observation obs,
     if (min_bomb_pos.x != -1) {
         return std::make_tuple(true, min_bomb_value, max_bomb_value);
     }
-    return std::make_tuple(false, INT_MAX, -INT_MAX);
+    return std::make_tuple(false, 9999, -9999);
 }
 
 bool check_if_flame_will_be_gone(bboard::Observation obs,
@@ -356,18 +356,18 @@ int compute_min_evade_step(bboard::Observation obs,
         if (parent_pos_list.size() > max_cover_value + FLAME_LIFE) {
             return 0;
         } else {
-            return INT_MAX;
+            return 9999;
         }
     } else if (parent_pos_list.size() >= min_cover_value) {
         if (parent_pos_list.size() > min_cover_value + FLAME_LIFE) {
             return 0;
         } else {
-            return INT_MAX;
+            return 9999;
         }
     } else {
         // board = obs['board'] weggelassen, da mit cpp obs von board erbt
         std::vector<bboard::Move> dirs = all_directions();
-        int min_step = INT_MAX;
+        int min_step = 9999;
         for (bboard::Move d : dirs) {
             bboard::Position next_pos = bboard::util::DesiredPosition(pos.x, pos.y, d);
             if (bboard::IsOutOfBounds(next_pos.x, next_pos.y)) {
