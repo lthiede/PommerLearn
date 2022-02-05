@@ -4,7 +4,7 @@ set (CMAKE_CXX_STANDARD 17)
 project(PommerLearn CXX)
 
 option(USE_TENSORRT              "Build with TensorRT support"  ON)
-option(USE_TENSORRT8             "Build with TensorRT support (version 8)"  OFF)
+option(USE_TENSORRT8             "Build with TensorRT support (version 8)"  ON)
 option(USE_TORCH                 "Build with Torch support"  OFF)
 option(USE_PROFILING             "Build with profiling"   OFF)
 

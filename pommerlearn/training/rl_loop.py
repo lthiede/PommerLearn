@@ -355,7 +355,7 @@ def main():
     parser = argparse.ArgumentParser(description='PommerLearn RL Loop')
     parser.add_argument('--dir', default='.', type=check_dir,
                         help='The main training directory that is used to store all intermediate and archived results')
-    parser.add_argument('--exec', default='./PommerLearn', type=check_file,
+    parser.add_argument('--exec', default='../build/PommerLearn', type=check_file,
                         help='The path to the PommerLearn executable')
     parser.add_argument('--it', default=500, type=int,
                         help='Maximum number of iterations (-1 for endless run that has to be stopped manually)')
