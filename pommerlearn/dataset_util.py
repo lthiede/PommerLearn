@@ -423,8 +423,6 @@ def get_value_target(z, value_version: int, discount_factor: float, mcts_val_wei
                 obs = z['obs'][agent_ep_idx]
                 act = z['act'][agent_ep_idx]  # act ist schon numerisch codiert
 
-                print("Action: " + str(act))
-
                 if agent_ep_idx == 0:
                     old_obs = obs
                     old_act = 0

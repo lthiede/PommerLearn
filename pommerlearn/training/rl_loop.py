@@ -353,7 +353,7 @@ def main():
     global stop_rl
 
     parser = argparse.ArgumentParser(description='PommerLearn RL Loop')
-    parser.add_argument('--dir', default='.', type=check_dir,
+    parser.add_argument('--dir', default='../data', type=check_dir,
                         help='The main training directory that is used to store all intermediate and archived results')
     parser.add_argument('--exec', default='../build/PommerLearn', type=check_file,
                         help='The path to the PommerLearn executable')
