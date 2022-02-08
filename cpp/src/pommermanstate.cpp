@@ -7,6 +7,8 @@
 #include "pommermanstate.h"
 #include "data_representation.h"
 #include "agents.hpp"
+#include "action_pruning.h"
+#include <unordered_set>
 
 uint StateConstantsPommerman::auxiliaryStateSize = 0;
 
@@ -200,7 +202,27 @@ std::vector<Action> PommermanState::legal_actions() const
         }
     }
 
-    return legalActions;
+    bboard::Observation obs;
+    bboard::Observation::Get(state, agentID, this->params, obs);
+
+    std::vector<bboard::Observation> prev_two_obs = {obs};  // TODO
+
+    std::unordered_set<bboard::Move> filtered_actions = action_pruning::get_filtered_actions(obs, prev_two_obs);
+
+    std::vector<Action> ret;
+    for (bboard::Move move : filtered_actions) {
+        Action action = Action(move);
+        for (Action legal_action : legalActions) {
+            if (bboard::Move(legal_action) == bboard::Move(action)) {
+                ret.push_back(action);
+            }
+        }
+    }
+    // std::cout << "221 in legal_actions (pommermanstate.cpp)" << std::endl;
+    ret.push_back(Action(bboard::Move::IDLE));
+    return ret;
+
+    //return legalActions;
 }
 
 void PommermanState::set(const std::string &fenStr, bool isChess960, int variant)

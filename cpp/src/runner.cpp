@@ -133,11 +133,8 @@ void Runner::run(std::array<bboard::Agent*, bboard::AGENT_COUNT> agents, bboard:
 
         bboard::Environment env;
         env.MakeGame(agents, gameMode, currentEnvSeed, currentAgentPositionSeed);
-
         EpisodeInfo result = Runner::run_env_episode(env, config.maxEpisodeSteps, config.printSteps, config.printFirstLast);
-
         totalEpisodeSteps += result.steps;
-
         if (config.ipcManager != nullptr) {
             config.ipcManager->writeNewEpisode(result);
 
@@ -195,6 +192,7 @@ void Runner::run(std::array<bboard::Agent*, bboard::AGENT_COUNT> agents, bboard:
         {
             _print_stats(begin, episode + 1, totalEpisodeSteps, nbNotDone, nbDraws, nbWins);
         }
+
     }
 
     // display aggregated statistics

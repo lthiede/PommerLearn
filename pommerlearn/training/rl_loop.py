@@ -405,10 +405,10 @@ def main():
     # model_subdir = "torch_cpu"
     # model_subdir = "torch_cuda"
     dataset_args = [
-        "--mode=team_radio_mcts", #TODO
+        "--mode=team_radio_mcts",  # TODO
         "--env_gen_seed_eps=2",
         "--max_games=-1",
-        "--targeted_samples=50000",
+        "--targeted_samples=2000",  # TODO
         "--state_size=0",
         "--planning_agents=SimpleUnbiasedAgent",  # LazyAgent
         "--simulations=100",

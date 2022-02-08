@@ -117,6 +117,7 @@ void team_radio_tourney(std::string modelDir, RunnerConfig config, bool useRawNe
 }
 
 int main(int argc, char **argv) {
+
     po::options_description configDesc("Available options");
 
     configDesc.add_options()
