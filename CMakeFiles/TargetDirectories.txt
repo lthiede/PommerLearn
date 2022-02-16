@@ -1,7 +1,0 @@
-/home/wanja/Schreibtisch/PommerLearn/CMakeFiles/rebuild_cache.dir
-/home/wanja/Schreibtisch/PommerLearn/CMakeFiles/edit_cache.dir
-/home/wanja/Schreibtisch/PommerLearn/CMakeFiles/PommerLearnTest.dir
-/home/wanja/Schreibtisch/PommerLearn/CMakeFiles/PommerLearnPy.dir
-/home/wanja/Schreibtisch/PommerLearn/CMakeFiles/PommerLearn.dir
-/home/wanja/Schreibtisch/PommerLearn/CMakeFiles/pomcpp.dir
-/home/wanja/Schreibtisch/PommerLearn/CMakeFiles/CrazyAra.dir

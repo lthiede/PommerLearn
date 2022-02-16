@@ -51,4 +51,4 @@ RUN source /opt/miniconda3/bin/activate pommer && \
     pip install -r requirements.txt
 
 # start environment
-CMD ["conda", "run", "--no-capture-output", "-n", "pommer", "/bin/bash"]
+CMD ["conda", "run", "--no-capture-output", "-n", "pommer", "/deps/pomcpp/py/pypomcpp/cppagent_runner.py", "--agent_name", "CrazyAraAgent:/model/:0:100:90", ]

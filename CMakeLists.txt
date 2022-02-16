@@ -204,4 +204,3 @@ file(GLOB test_files
 
 add_executable(${test_name} ${source_files_nomain} ${test_files})
 target_link_libraries(${test_name} ${CMAKE_THREAD_LIBS_INIT} ${BLOSC} CrazyAra pomcpp Boost::program_options)
-

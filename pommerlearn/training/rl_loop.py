@@ -408,7 +408,7 @@ def main():
         "--mode=team_radio_mcts",  # TODO
         "--env_gen_seed_eps=2",
         "--max_games=-1",
-        "--targeted_samples=2000",  # TODO
+        "--targeted_samples=50000",  # TODO
         "--state_size=0",
         "--planning_agents=SimpleUnbiasedAgent",  # LazyAgent
         "--simulations=100",
@@ -416,10 +416,10 @@ def main():
         f"--value_version={value_version}",
     ]
 
-    max_iterations = 100
+    # max_iterations = 100
 
     # Start the rl loop
-    rl_args = (run_id, max_iterations, base_dir, exec_path, dataset_args, train_config, model_subdir,
+    rl_args = (run_id, parsed_args.it, base_dir, exec_path, dataset_args, train_config, model_subdir,
                parsed_args.num_latest, parsed_args.num_recent, parsed_args.recent_include)
     rl_thread = threading.Thread(target=rl_loop, args=rl_args)
     rl_thread.start()

@@ -9,7 +9,7 @@ std::unique_ptr<CrazyAraAgent> create_crazyara_agent(std::string modelDir, uint 
 {
     StateConstants::init(false);
     StateConstantsPommerman::set_auxiliary_outputs(stateSize);
-    
+
     std::unique_ptr<CrazyAraAgent> crazyAraAgent;
     if(rawNetAgent)
     {
@@ -24,12 +24,13 @@ std::unique_ptr<CrazyAraAgent> create_crazyara_agent(std::string modelDir, uint 
 
     // partial observability
     bboard::ObservationParameters obsParams;
-    obsParams.agentPartialMapView = false;
-    obsParams.agentInfoVisibility = bboard::AgentInfoVisibility::All;
+    obsParams.agentPartialMapView = true;
+    obsParams.agentInfoVisibility = bboard::AgentInfoVisibility::OnlySelf;
     obsParams.exposePowerUps = false;
 
-    uint valueVersion = 2;
-    crazyAraAgent->init_state(bboard::GameMode::FreeForAll, obsParams, valueVersion);
+    uint valueVersion = 1;
+    //uint valueVersion = 2;
+    crazyAraAgent->init_state(bboard::GameMode::TeamRadio, obsParams, valueVersion);
 
     return crazyAraAgent;
 }
@@ -63,7 +64,7 @@ std::unique_ptr<bboard::Agent> PyInterface::new_agent(std::string agentName, lon
         tmp = _extract_arg(tmp.second);
         std::string modelDir = tmp.first;
         std::string stateSize = tmp.second;
-        if(modelDir.empty() || stateSize.empty()) 
+        if(modelDir.empty() || stateSize.empty())
         {
             std::cout << "Could not parse agent identifier. Specify the agent like RawNet:dir:stateSize" << std::endl;
             return nullptr;
@@ -85,7 +86,7 @@ std::unique_ptr<bboard::Agent> PyInterface::new_agent(std::string agentName, lon
         tmp = _extract_arg(tmp.second);
         std::string simulations = tmp.first;
         std::string moveTime = tmp.second;
-        if(modelDir.empty() || stateSize.empty() || simulations.empty() || moveTime.empty()) 
+        if(modelDir.empty() || stateSize.empty() || simulations.empty() || moveTime.empty())
         {
             std::cout << "Could not parse agent identifier. Specify the agent like CrazyAra:dir:stateSize:simulations:moveTime" << std::endl;
             return nullptr;

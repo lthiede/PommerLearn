@@ -69,7 +69,7 @@ void CrazyAraAgent::init_state(bboard::GameMode gameMode, bboard::ObservationPar
                 new CopyClonable<bboard::Agent, agents::LazyAgent>(agents::LazyAgent()),
             };
             break;
-        
+
         default:
             break;
         }
@@ -126,6 +126,7 @@ void _print_q(EvalInfo* info) {
 
 bboard::Move CrazyAraAgent::act(const bboard::Observation *obs)
 {
+    set_outgoing(obs);
     pommermanState->set_observation(obs);
     agent->set_search_settings(pommermanState.get(), &searchLimits, &evalInfo);
     agent->perform_action();
@@ -166,6 +167,42 @@ bboard::Move CrazyAraAgent::act(const bboard::Observation *obs)
     }
 
     return bestAction;
+}
+
+void CrazyAraAgen::set_outgoing(const bboard::Observation *obs)
+{
+  std::vector<std::vector<int>> enemyQuad2Message = {
+    { 0, 1, 2, 3, 4},
+    { 5, 6, 7, 8, 9},
+    { 10, 11, 12, 13, 14},
+    { 15, 16, 17, 18, 19},
+    { 20, 21, 22, 23, 24},
+  };
+  int word0;
+  int word1;
+  if (obs.agents[obs.agentID].y < bboard::BOARD_SIZE / 2) {
+    // we are in the upper half of the board
+    // set first bit of first word to 0
+    word0 &= ~(1UL << 0);
+  } else {
+    // we are in the lower half of the board
+    // set first bit of first word to 1
+    word0 &= ~(1UL << 1);
+  }
+  int enemy1id = -1;
+  int enemy2id;
+  for (int i = 0; i < 4; i++) {
+    if (obs.Enemies(obs.agentID, i)) {
+      if (enemy1id == -1){
+        enemy1id = i;
+      } else {
+        enemy2id = i;
+      }
+    }
+  }
+  int enemy1Quad;
+  obs.agents[enemy1id].
+
 }
 
 void CrazyAraAgent::reset() {
