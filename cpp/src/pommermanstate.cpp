@@ -69,6 +69,11 @@ void PommermanState::set_observation(const bboard::Observation* obs)
     }
 }
 
+void PommermanState::set_message(bboard::PythonEnvMessage* msg)
+{
+    message = msg;
+}
+
 bool _supportedPlanningAgents(PommermanState* state)
 {
     // supported: full observability of the board and all agent information is known
@@ -233,7 +238,7 @@ void PommermanState::set(const std::string &fenStr, bool isChess960, int variant
 void PommermanState::get_state_planes(bool normalize, float *inputPlanes, Version version) const
 {
     // TODO
-    BoardToPlanes(&state, 0, inputPlanes);
+    BoardToPlanes(&state, message, 0, inputPlanes);
     if (this->statefulModel)
     {
         // add auxiliary outputs
@@ -440,7 +445,7 @@ inline TerminalType is_terminal_v2(const PommermanState* pommerState, size_t num
         case bboard::GameMode::FreeForAll:
             customTerminalValue = numDeadOpponents * 1.0 / 3 + (ownInfo.dead ? -1.0 : 0.0);
             break;
-        
+
         case bboard::GameMode::TwoTeams:
             customTerminalValue = numDeadOpponents * 1.0 / 2 + (ownInfo.dead ? -1.0 / 2 : 0.0);
             break;
@@ -450,7 +455,7 @@ inline TerminalType is_terminal_v2(const PommermanState* pommerState, size_t num
         }
         return TERMINAL_CUSTOM;
     }
-    
+
     return TERMINAL_NONE;
 }
 
@@ -468,13 +473,13 @@ inline TerminalType is_terminal_v4(const PommermanState* pommerState, size_t num
         case bboard::GameMode::FreeForAll:
             customTerminalValue = -1 + 4.0 / 7 * numDeadOpponents + (ownInfo.dead ? 0 : 2.0 / 7);
             break;
-        
+
         default:
             throw std::runtime_error("GameMode not supported.");
         }
         return TERMINAL_CUSTOM;
     }
-    
+
     return TERMINAL_NONE;
 }
 
@@ -485,7 +490,7 @@ TerminalType PommermanState::is_terminal(size_t numberLegalMoves, float& customT
     {
     case 1:
         return is_terminal_v1(this, numberLegalMoves, customTerminalValue);
-    
+
     case 2:
         return is_terminal_v2(this, numberLegalMoves, customTerminalValue);
 
@@ -494,7 +499,7 @@ TerminalType PommermanState::is_terminal(size_t numberLegalMoves, float& customT
 
     default:
         throw std::runtime_error("Unknown value version " + std::to_string(valueVersion));
-    }    
+    }
 }
 
 bool PommermanState::gives_check(Action action) const
@@ -553,4 +558,3 @@ void PommermanState::set_auxiliary_outputs(const float *auxiliaryOutputs)
         std::copy(auxiliaryOutputs, auxiliaryOutputs+StateConstantsPommerman::NB_AUXILIARY_OUTPUTS(), this->auxiliaryOutputs.begin());
     }
 }
-

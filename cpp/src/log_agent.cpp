@@ -40,7 +40,14 @@ bboard::Move WrappedLogAgent::act(const bboard::Observation* obs) {
 
     // log the (state, action) pair
     if (this->has_buffer()) {
-        BoardToPlanes(obs, id, this->planeBuffer);
+        if (this->incoming) {
+          bboard::PythonEnvMessage& twoWordsMsg = dynamic_cast<bboard::PythonEnvMessage&>(*(this->incoming));
+          BoardToPlanes(obs, &twoWordsMsg, id, this->planeBuffer);
+        } else {
+          bboard::PythonEnvMessage twoWordsMsg = bboard::PythonEnvMessage(0, 0);
+          bboard::PythonEnvMessage& twoWordsMsgReference = twoWordsMsg;
+          BoardToPlanes(obs, &twoWordsMsgReference, id, this->planeBuffer);
+        }
         this->sampleBuffer->addSample(this->planeBuffer, move);
     }
 

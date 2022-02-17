@@ -17,7 +17,7 @@ class A2CNet(PommerModel):
         self,
         n_labels=6,
         channels=45,
-        nb_input_channels=18,
+        nb_input_channels=18 + 3,
         board_height=11,
         board_width=11,
         bn_mom=0.9,
@@ -68,12 +68,12 @@ class A2CNet(PommerModel):
                                get_act(act_type)
                                )
 
-        self.lstm = torch.nn.LSTMCell(512, 64)
-        self.linear_after_lstm = nn.Linear(64, 64)
+        self.policy_net = nn.Linear(512, 64)
+        self.value_net = nn.Linear(512, 64)
 
         # create the two heads which will be used in the hybrid fwd pass
         self.policy_head = nn.Linear(64, n_labels)
-        self.value_head = nn.Linear(512, 1)
+        self.value_head = nn.Linear(64, 1)
 
     def forward(self, flat_input):
         """
@@ -86,11 +86,11 @@ class A2CNet(PommerModel):
         x, state_bf = self.unflatten(flat_input)
 
         out = self.body(x)
-        rnn_out, _ = self.lstm(out)
-        rnn_out = self.linear_after_lstm(rnn_out)
+        policy_net = self.policy_net(out)
+        value_net = self.value_net(out)
 
-        value = self.value_head(out)
-        policy = self.policy_head(rnn_out)
+        value = self.value_head(value_net)
+        policy = self.policy_head(policy_net)
 
         return value, policy
 

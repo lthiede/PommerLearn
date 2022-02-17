@@ -11,7 +11,9 @@ float inline _getNormalizedBombStrength(int stength)
 }
 
 template <typename xtPlanesType>
-inline void _boardToPlanes(const bboard::Board* board, int id, xtPlanesType xtPlanes, int& planeIndex)
+inline void _boardToPlanes(const bboard::Board* board,
+  bboard::PythonEnvMessage* message, int id, xtPlanesType xtPlanes,
+  int& planeIndex)
 {
     // shape of a single plane (BOARD_SIZE == PLANE_SIZE)
     std::vector<std::size_t> boardShape = { bboard::BOARD_SIZE, bboard::BOARD_SIZE };
@@ -94,6 +96,83 @@ inline void _boardToPlanes(const bboard::Board* board, int id, xtPlanesType xtPl
         int currentPlane = planeIndex++;
         xt::view(xtPlanes, currentPlane) = xt::cast<float>(xt::equal(items, bboard::Item::AGENT0 + currentId));;
     }
+
+    int word0 = message->words[0];
+    int word1 = message->words[1];
+    int teammatePosMsgPlane = planeIndex++;
+    int enemyPosEncoding;
+    if ((word1 >> 0) & 1U == 1) {
+      // teammate is in the lower half of the board
+      xt::view(xtPlanes, teammatePosMsgPlane, xt::range(0, bboard::BOARD_SIZE / 2),
+        xt::all()) = 0;
+      xt::view(xtPlanes, teammatePosMsgPlane, xt::range(bboard::BOARD_SIZE / 2,
+        bboard::BOARD_SIZE), xt::all()) = 1;
+    } else {
+      // teammate is in the upper half of the board
+      xt::view(xtPlanes, teammatePosMsgPlane, xt::range(0, bboard::BOARD_SIZE / 2),
+        xt::all()) = 1;
+      xt::view(xtPlanes, teammatePosMsgPlane, xt::range(bboard::BOARD_SIZE / 2,
+        bboard::BOARD_SIZE), xt::all()) = 0;
+    }
+    if ((word0 >> 2) & 1U == 1) {
+      enemyPosEncoding = 16;
+    } else if ((word0 >> 1) & 1U == 1) {
+      enemyPosEncoding = 8;
+    } else {
+      enemyPosEncoding = 0;
+    }
+    enemyPosEncoding += word1;
+    int enemy2PosMsgPlane = planeIndex++;
+    if (enemyPosEncoding % 5 == 0) {
+      // enemy 2 not seen
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::all(), xt::all()) = 0;
+    } else if (enemyPosEncoding % 5 == 1) {
+      // enemy 2 quadrant 1
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::range(0, bboard::BOARD_SIZE / 2),
+        xt::range(0, bboard::BOARD_SIZE / 2)) = 1;
+    } else if (enemyPosEncoding % 5 == 2) {
+      // enemy 2 quadrant 2
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::range(0, bboard::BOARD_SIZE / 2),
+        xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE)) = 1;
+    } else if (enemyPosEncoding % 5 == 3) {
+      // enemy 2 quadrant 3
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE),
+        xt::range(0, bboard::BOARD_SIZE / 2)) = 1;
+    } else if (enemyPosEncoding % 5 == 4) {
+      // enemy 2 quadrant 4
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy2PosMsgPlane, xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE),
+        xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE)) = 1;
+    }
+    enemyPosEncoding -= enemyPosEncoding % 5;
+    int enemy1PosMsgPlane = planeIndex++;
+    if (enemyPosEncoding == 0) {
+      // enemy 2 not seen
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::all(), xt::all()) = 0;
+    } else if (enemyPosEncoding == 1) {
+      // enemy 2 quadrant 1
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::range(0, bboard::BOARD_SIZE / 2),
+        xt::range(0, bboard::BOARD_SIZE / 2)) = 1;
+    } else if (enemyPosEncoding == 2) {
+      // enemy 2 quadrant 2
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::range(0, bboard::BOARD_SIZE / 2),
+        xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE)) = 1;
+    } else if (enemyPosEncoding == 3) {
+      // enemy 2 quadrant 3
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE),
+        xt::range(0, bboard::BOARD_SIZE / 2)) = 1;
+    } else if (enemyPosEncoding == 4) {
+      // enemy 2 quadrant 4
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::all(), xt::all()) = 0;
+      xt::view(xtPlanes, enemy1PosMsgPlane, xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE),
+        xt::range(bboard::BOARD_SIZE / 2, bboard::BOARD_SIZE)) = 1;
+    }
 }
 
 template <typename xtPlanesType>
@@ -105,14 +184,15 @@ inline void _infoToPlanes(const bboard::AgentInfo* info, xtPlanesType xtPlanes, 
     xt::view(xtPlanes, planeIndex++) = info->canKick ? 1 : 0;
 }
 
-void BoardToPlanes(const bboard::Board* board, int id, float* planes)
+void BoardToPlanes(const bboard::Board* board, bboard::PythonEnvMessage* message,
+  int id, float* planes)
 {
     // shape of all planes of a state
     std::vector<std::size_t> stateShape = { PLANE_COUNT, PLANE_SIZE, PLANE_SIZE };
     auto xtPlanes = xt::adapt(planes, PLANE_COUNT * PLANE_SIZE * PLANE_SIZE, xt::no_ownership(), stateShape);
 
     int planeIndex = 0;
-    _boardToPlanes(board, id, xtPlanes, planeIndex);
+    _boardToPlanes(board, message, id, xtPlanes, planeIndex);
     _infoToPlanes(&board->agents[id], xtPlanes, planeIndex);
 }
 

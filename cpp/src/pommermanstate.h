@@ -28,7 +28,7 @@ public:
         return 11;
     }
     static uint NB_CHANNELS_TOTAL() {
-        return 18;
+        return 18 + 3;
     }
     static uint NB_LABELS() {
         return 6;
@@ -83,7 +83,7 @@ class PommermanState : public State
 public:
     /**
      * @brief Pommerman planning state for a single agent with optional planning agents (heuristic behaviour) as opponents.
-     * 
+     *
      * @param gameMode The game mode
      * @param statefulModel Whether the used model is stateful
      * @param maxTimeStep The max number of time steps of an episode (= max depth)
@@ -92,6 +92,7 @@ public:
     PommermanState(bboard::GameMode gameMode, bool statefulModel, uint maxTimeStep, uint valueVersion);
     bboard::State state;
     bboard::Move moves[bboard::AGENT_COUNT];
+    bboard::PythonEnvMessage* message;
     uint agentID;
     const bboard::GameMode gameMode;
     bool usePartialObservability;
@@ -120,6 +121,7 @@ public:
 public:
     void set_state(const bboard::State* state);
     void set_observation(const bboard::Observation* obs);
+    void set_message(bboard::PythonEnvMessage* msg);
     void set_partial_observability(const bboard::ObservationParameters params);
     void set_agent_id(const int id);
 

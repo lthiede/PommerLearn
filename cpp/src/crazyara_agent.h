@@ -11,7 +11,7 @@
 /**
  * @brief Agent types that can be used during planning.
  */
-enum PlanningAgentType 
+enum PlanningAgentType
 {
     SimpleUnbiasedAgent,
     SimpleAgent,
@@ -57,6 +57,7 @@ public:
 
     // bboard::Agent
     bboard::Move act(const bboard::Observation* obs) override;
+    void set_outgoing(const bboard::Observation *obs);
     void reset() override;
 };
 

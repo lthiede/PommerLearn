@@ -124,10 +124,87 @@ void _print_q(EvalInfo* info) {
     std::cout << std::endl;
 }
 
+void CrazyAraAgent::set_outgoing(const bboard::Observation *obs)
+{
+  int word0;
+  int word1;
+  if (obs->agents[obs->agentID].y < bboard::BOARD_SIZE / 2) {
+    // we are in the upper half of the board
+    // set first bit of first word to 0
+    word0 &= ~(1UL << 0);
+  } else {
+    // we are in the lower half of the board
+    // set first bit of first word to 1
+    word0 &= ~(1UL << 1);
+  }
+  int enemy1Id = -1;
+  int enemy2Id;
+  for (int i = 0; i < 4; i++) {
+    if (obs->Enemies(obs->agentID, i)) {
+      if (enemy1Id == -1){
+        enemy1Id = i;
+      } else {
+        enemy2Id = i;
+      }
+    }
+  }
+  int enemy1Quad;
+  if (!obs->agents[enemy1Id].visible || obs->agents[enemy1Id].dead) {
+    enemy1Quad = 0;
+  } else if (obs->agents[enemy1Id].x < bboard::BOARD_SIZE / 2 &&
+    obs->agents[enemy1Id].y < bboard::BOARD_SIZE / 2) {
+    enemy1Quad = 1;
+  } else if (obs->agents[enemy1Id].x >= bboard::BOARD_SIZE / 2 &&
+    obs->agents[enemy1Id].y < bboard::BOARD_SIZE / 2) {
+    enemy1Quad = 2;
+  } else if (obs->agents[enemy1Id].x < bboard::BOARD_SIZE / 2 &&
+    obs->agents[enemy1Id].y >= bboard::BOARD_SIZE / 2) {
+    enemy1Quad = 3;
+  } else {
+    enemy1Quad = 4;
+  }
+  int enemy2Quad;
+  if (!obs->agents[enemy2Id].visible || obs->agents[enemy2Id].dead) {
+    enemy2Quad = 0;
+  } else if (obs->agents[enemy2Id].x < bboard::BOARD_SIZE / 2 &&
+    obs->agents[enemy2Id].y < bboard::BOARD_SIZE / 2) {
+    enemy2Quad = 1;
+  } else if (obs->agents[enemy2Id].x >= bboard::BOARD_SIZE / 2 &&
+    obs->agents[enemy2Id].y < bboard::BOARD_SIZE / 2) {
+    enemy2Quad = 2;
+  } else if (obs->agents[enemy2Id].x < bboard::BOARD_SIZE / 2 &&
+    obs->agents[enemy2Id].y >= bboard::BOARD_SIZE / 2) {
+    enemy2Quad = 3;
+  } else {
+    enemy2Quad = 4;
+  }
+  int enemyPosEncoding = enemy1Quad + 5 * enemy2Quad;
+  word1 = enemyPosEncoding % 8;
+  if (enemyPosEncoding < 8) {
+    word0 &= ~(1UL << 1);
+    word0 &= ~(1UL << 2);
+  } else if (enemyPosEncoding < 16) {
+    word0 |= 1UL << 1;
+    word0 &= ~(1UL << 2);
+  } else {
+    word0 &= ~(1UL << 1);
+    word0 |= 1UL << 2;
+  }
+  SendMessage(word0, word1);
+}
+
 bboard::Move CrazyAraAgent::act(const bboard::Observation *obs)
 {
     set_outgoing(obs);
     pommermanState->set_observation(obs);
+    if (this->incoming) {
+      bboard::PythonEnvMessage& twoWordsMsg = dynamic_cast<bboard::PythonEnvMessage&>(*(this->incoming));
+      pommermanState->set_message(&twoWordsMsg);
+    } else {
+      bboard::PythonEnvMessage twoWordsMsg = bboard::PythonEnvMessage(0, 0);
+      bboard::PythonEnvMessage& twoWordsMsgReference = twoWordsMsg;
+      pommermanState->set_message(&twoWordsMsgReference);
+    }
     agent->set_search_settings(pommermanState.get(), &searchLimits, &evalInfo);
     agent->perform_action();
 
@@ -167,42 +244,6 @@ bboard::Move CrazyAraAgent::act(const bboard::Observation *obs)
     }
 
     return bestAction;
-}
-
-void CrazyAraAgen::set_outgoing(const bboard::Observation *obs)
-{
-  std::vector<std::vector<int>> enemyQuad2Message = {
-    { 0, 1, 2, 3, 4},
-    { 5, 6, 7, 8, 9},
-    { 10, 11, 12, 13, 14},
-    { 15, 16, 17, 18, 19},
-    { 20, 21, 22, 23, 24},
-  };
-  int word0;
-  int word1;
-  if (obs.agents[obs.agentID].y < bboard::BOARD_SIZE / 2) {
-    // we are in the upper half of the board
-    // set first bit of first word to 0
-    word0 &= ~(1UL << 0);
-  } else {
-    // we are in the lower half of the board
-    // set first bit of first word to 1
-    word0 &= ~(1UL << 1);
-  }
-  int enemy1id = -1;
-  int enemy2id;
-  for (int i = 0; i < 4; i++) {
-    if (obs.Enemies(obs.agentID, i)) {
-      if (enemy1id == -1){
-        enemy1id = i;
-      } else {
-        enemy2id = i;
-      }
-    }
-  }
-  int enemy1Quad;
-  obs.agents[enemy1id].
-
 }
 
 void CrazyAraAgent::reset() {

@@ -34,7 +34,7 @@ from training.train_util import rm_dir
 
 
 def create_model(train_config):
-    input_shape = (18, 11, 11)
+    input_shape = (18 + 3, 11, 11)
     valid_models = ["a0", "risev3", "a2c"]
     if train_config["model"] == "a0":
         model = AlphaZeroResnet(num_res_blocks=train_config["num_res_blocks"], nb_input_channels=input_shape[0], board_width=input_shape[2],
