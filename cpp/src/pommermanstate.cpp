@@ -512,6 +512,7 @@ PommermanState* PommermanState::clone() const
     PommermanState* clone = new PommermanState(gameMode, statefulModel, maxTimeStep, valueVersion);
     clone->state = state;
     clone->agentID = agentID;
+    clone->message = message;
     if (hasPlanningAgents) {
         // clone all agents
         for (size_t i = 0; i < planningAgents.size(); i++) {
