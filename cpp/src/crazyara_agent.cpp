@@ -197,8 +197,14 @@ bboard::Move CrazyAraAgent::act(const bboard::Observation *obs)
 {
     set_outgoing(obs);
     pommermanState->set_observation(obs);
-    bboard::PythonEnvMessage& twoWordsMsg = dynamic_cast<bboard::PythonEnvMessage&>(*(this->incoming));
-    pommermanState->set_message(&twoWordsMsg);
+    if (this->incoming) {
+        bboard::PythonEnvMessage& twoWordsMsgRef = dynamic_cast<bboard::PythonEnvMessage&>(*(this->incoming));
+        pommermanState->set_message(&twoWordsMsgRef);
+    } else {
+        bboard::PythonEnvMessage* twoWordsMsg = new bboard::PythonEnvMessage(0, 0);
+        bboard::PythonEnvMessage& twoWordsMsgRef = *twoWordsMsg;
+        pommermanState->set_message(&twoWordsMsgRef);
+    }
     agent->set_search_settings(pommermanState.get(), &searchLimits, &evalInfo);
     agent->perform_action();
 

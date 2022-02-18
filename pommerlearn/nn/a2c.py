@@ -34,7 +34,7 @@ class A2CNet(PommerModel):
         :return: net description
         """
 
-        print("INIT A2C")
+        print("INIT A2CV3")
 
         super(A2CNet, self).__init__(nb_input_channels=nb_input_channels, board_height=board_height,
                                      board_width=board_height, is_stateful=False, state_batch_dim=None)

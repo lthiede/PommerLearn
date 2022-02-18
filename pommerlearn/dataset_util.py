@@ -157,7 +157,7 @@ class PommerDataset(Dataset):
         """
 
         return PommerDataset(
-            obs=np.empty((count, 18, 11, 11), dtype=float),
+            obs=np.empty((count, 18 + 3, 11, 11), dtype=float),
             val=np.empty(count, dtype=float),
             act=np.empty(count, dtype=int),
             pol=np.empty((count, 6), dtype=float),
