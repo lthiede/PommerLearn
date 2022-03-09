@@ -99,6 +99,7 @@ void team_radio_tourney(std::string modelDir, RunnerConfig config, bool useRawNe
     obsParams.agentViewSize = 4;
 
     crazyAraAgent->init_state(gameMode, obsParams, valueVersion, planningAgentType);
+    crazyAraAgent2->init_state(gameMode, obsParams, valueVersion, planningAgentType);
 
     srand(config.seed);
     std::array<bboard::Agent*, bboard::AGENT_COUNT> agents = {
