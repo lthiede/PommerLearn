@@ -430,7 +430,7 @@ def get_value_target(z, value_version: int, discount_factor: float, mcts_val_wei
                     old_obs = z['obs'][agent_ep_idx - 1]
                     old_act = z['act'][agent_ep_idx - 1]
 
-                episode_value = reward_shaping.get_reward(episode_value, obs, old_obs, act, old_act)
+                episode_value = reward_shaping.get_reward(episode_value, obs, old_obs, act, old_act, agent_id)
 
             episode_target = get_combined_target(episode_mcts_val, episode_value, episode_discounting)
 

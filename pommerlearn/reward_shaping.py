@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def get_reward(reward, obs, old_obs, action, last_action):
+def get_reward(reward, obs, old_obs, action, last_action, agent_id):
 
-    agent_nr = 10
+    agent_nr = agent_id + 10
     pos = get_position(obs, agent_nr)
     old_pos = get_position(old_obs, agent_nr)
 
