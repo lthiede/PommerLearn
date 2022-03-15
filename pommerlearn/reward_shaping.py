@@ -26,12 +26,16 @@ def get_reward(reward, obs, old_obs, action, last_action, agent_id):
     adjacent = np.clip(adjacent, 0, 10)
     if action == 5 and ammo > 0:
         wood_board = obs[1]
-        enemy_1_board = obs[11]
+        if agent_nr % 2 == 0:
+            enemy_1_board = obs[11]
+            enemy_2_board = obs[13]
+        else:
+            enemy_1_board = obs[10]
+            enemy_2_board = obs[12]
         if agent_nr < 12:
             teammate_board = obs[agent_nr + 2]
         else:
             teammate_board = obs[agent_nr - 2]
-        enemy_2_board = obs[13]
         for xy in adjacent:
             wood_val = wood_board[xy[0]][xy[1]]
             enemy_1_val = enemy_1_board[xy[0]][xy[1]]
