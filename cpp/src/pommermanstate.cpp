@@ -214,6 +214,7 @@ std::vector<Action> PommermanState::legal_actions() const
 
     std::unordered_set<bboard::Move> filtered_actions = action_pruning::get_filtered_actions(obs, prev_two_obs);
 
+    // return actions which are both legal and not removed by action pruning plus idle
     std::vector<Action> ret;
     for (bboard::Move move : filtered_actions) {
         Action action = Action(move);
@@ -223,11 +224,8 @@ std::vector<Action> PommermanState::legal_actions() const
             }
         }
     }
-    // std::cout << "221 in legal_actions (pommermanstate.cpp)" << std::endl;
     ret.push_back(Action(bboard::Move::IDLE));
     return ret;
-
-    //return legalActions;
 }
 
 void PommermanState::set(const std::string &fenStr, bool isChess960, int variant)

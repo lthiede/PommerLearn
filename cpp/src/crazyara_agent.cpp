@@ -137,6 +137,7 @@ void CrazyAraAgent::set_outgoing(const bboard::Observation *obs)
     // set first bit of first word to 1
     word0 &= ~(1UL << 1);
   }
+  // get enemies ids
   int enemy1Id = -1;
   int enemy2Id;
   for (int i = 0; i < 4; i++) {
@@ -148,6 +149,7 @@ void CrazyAraAgent::set_outgoing(const bboard::Observation *obs)
       }
     }
   }
+  // encode enemy quadrants as a number between 0 and 24
   int enemy1Quad;
   if (!obs->agents[enemy1Id].visible || obs->agents[enemy1Id].dead) {
     enemy1Quad = 0;
@@ -179,7 +181,9 @@ void CrazyAraAgent::set_outgoing(const bboard::Observation *obs)
     enemy2Quad = 4;
   }
   int enemyPosEncoding = enemy1Quad + 5 * enemy2Quad;
+  // fill word 1 with 3 least-significant bits of the number
   word1 = enemyPosEncoding % 8;
+  // fill remaining bits of word 0 with 2 most-significant bits of the number
   if (enemyPosEncoding < 8) {
     word0 &= ~(1UL << 1);
     word0 &= ~(1UL << 2);
@@ -195,8 +199,10 @@ void CrazyAraAgent::set_outgoing(const bboard::Observation *obs)
 
 bboard::Move CrazyAraAgent::act(const bboard::Observation *obs)
 {
+    // set outgoing message
     set_outgoing(obs);
     pommermanState->set_observation(obs);
+    // add incoming message to state
     if (this->incoming) {
         bboard::PythonEnvMessage& twoWordsMsgRef = dynamic_cast<bboard::PythonEnvMessage&>(*(this->incoming));
         pommermanState->set_message(&twoWordsMsgRef);
